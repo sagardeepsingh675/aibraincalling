@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
+import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { asteriskARI } from './AsteriskARIService';
 import { vertexAI } from './VertexAIService';
@@ -274,7 +275,6 @@ export class AudioBridgeService extends EventEmitter {
     private async playAudioFile(channelId: string, audioPath: string): Promise<void> {
         // Convert MP3 to WAV format that Asterisk can play
         // Asterisk needs: 8kHz, mono, 16-bit PCM (slin) or ulaw/alaw
-        const { execSync } = require('child_process');
 
         const filename = path.basename(audioPath, '.mp3');
         const asteriskSoundsDir = '/var/lib/asterisk/sounds/ai-brain';
