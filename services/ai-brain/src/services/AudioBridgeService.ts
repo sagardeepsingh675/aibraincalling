@@ -280,37 +280,73 @@ export class AudioBridgeService extends EventEmitter {
         const asteriskSoundsDir = '/var/lib/asterisk/sounds/ai-brain';
         const wavPath = path.join(asteriskSoundsDir, `${filename}.wav`);
 
+        logger.info(`=== PLAY AUDIO FILE START ===`);
+        logger.info(`Audio path: ${audioPath}`);
+        logger.info(`Target WAV: ${wavPath}`);
+
         try {
-            // Ensure the AI sounds directory exists
-            if (!fs.existsSync(asteriskSoundsDir)) {
-                fs.mkdirSync(asteriskSoundsDir, { recursive: true });
-                logger.info(`Created Asterisk sounds directory: ${asteriskSoundsDir}`);
+            // Check if source file exists
+            if (!fs.existsSync(audioPath)) {
+                throw new Error(`Source audio file not found: ${audioPath}`);
             }
+            logger.info(`Source file exists: ${audioPath}`);
+
+            // Ensure the AI sounds directory exists
+            logger.info(`Checking sounds directory: ${asteriskSoundsDir}`);
+            if (!fs.existsSync(asteriskSoundsDir)) {
+                logger.info(`Creating directory: ${asteriskSoundsDir}`);
+                fs.mkdirSync(asteriskSoundsDir, { recursive: true });
+            }
+            logger.info(`Sounds directory ready`);
 
             // Convert MP3 to WAV using ffmpeg (8kHz mono for Asterisk)
-            logger.info(`Converting ${audioPath} to WAV format...`);
-            const ffmpegCmd = `ffmpeg -y -i "${audioPath}" -ar 8000 -ac 1 -acodec pcm_s16le "${wavPath}"`;
-            execSync(ffmpegCmd, { stdio: 'pipe' });
-            logger.info(`Converted audio to: ${wavPath}`);
+            logger.info(`Running ffmpeg conversion...`);
+            const ffmpegCmd = `ffmpeg -y -i "${audioPath}" -ar 8000 -ac 1 -acodec pcm_s16le "${wavPath}" 2>&1`;
+            try {
+                const output = execSync(ffmpegCmd, { encoding: 'utf8' });
+                logger.info(`ffmpeg output: ${output.substring(0, 200)}`);
+            } catch (ffmpegError: any) {
+                logger.error(`ffmpeg failed: ${ffmpegError.message}`);
+                logger.error(`ffmpeg stderr: ${ffmpegError.stderr || 'none'}`);
+                // Fallback: try playing built-in sound
+                logger.info(`Falling back to built-in hello-world sound`);
+                await asteriskARI.playAudio(channelId, 'sound:hello-world');
+                return;
+            }
 
-            // Play using sound: URI (relative to sounds directory, without extension)
+            // Verify WAV file was created
+            if (!fs.existsSync(wavPath)) {
+                throw new Error(`WAV file not created: ${wavPath}`);
+            }
+            logger.info(`WAV file created: ${wavPath}`);
+
+            // Play using sound: URI
             const soundUri = `sound:ai-brain/${filename}`;
             logger.info(`Playing with URI: ${soundUri}`);
 
             await asteriskARI.playAudio(channelId, soundUri);
             logger.info('Audio playback completed');
 
-            // Cleanup: delete the converted file after playback
+            // Cleanup after playback
             setTimeout(() => {
-                if (fs.existsSync(wavPath)) {
-                    fs.unlinkSync(wavPath);
-                    logger.info(`Cleaned up: ${wavPath}`);
-                }
-            }, 30000); // Clean up after 30 seconds
+                try {
+                    if (fs.existsSync(wavPath)) fs.unlinkSync(wavPath);
+                    if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+                } catch (e) { /* ignore cleanup errors */ }
+            }, 30000);
 
-        } catch (error) {
-            logger.error(`Failed to play audio ${audioPath}:`, error);
-            throw error;
+        } catch (error: any) {
+            logger.error(`=== PLAY AUDIO FAILED ===`);
+            logger.error(`Error: ${error.message}`);
+            logger.error(`Stack: ${error.stack}`);
+
+            // Final fallback: try playing built-in sound
+            try {
+                logger.info(`Final fallback: playing hello-world`);
+                await asteriskARI.playAudio(channelId, 'sound:hello-world');
+            } catch (fallbackErr) {
+                logger.error('Even fallback sound failed');
+            }
         }
     }
 
