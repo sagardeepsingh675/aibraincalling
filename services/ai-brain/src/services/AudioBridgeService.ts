@@ -56,7 +56,10 @@ export class AudioBridgeService extends EventEmitter {
     }): Promise<void> {
         const { channelId, channel, caller, extension } = event;
 
-        logger.info(`New AI call started: ${channelId}`, { caller, extension });
+        logger.info(`=== NEW AI CALL STARTED ===`);
+        logger.info(`Channel ID: ${channelId}`);
+        logger.info(`Caller: ${JSON.stringify(caller)}`);
+        logger.info(`Extension: ${extension}`);
 
         // Create session
         const session: ConversationSession = {
@@ -71,10 +74,14 @@ export class AudioBridgeService extends EventEmitter {
 
         try {
             // Answer the call
+            logger.info(`Answering channel ${channelId}...`);
             await asteriskARI.answerChannel(channelId);
+            logger.info(`Channel ${channelId} answered successfully!`);
 
             // Start the conversation
+            logger.info(`Starting conversation for ${channelId}...`);
             await this.startConversation(session);
+            logger.info(`Conversation completed for ${channelId}`);
         } catch (error) {
             logger.error(`Failed to start conversation for ${channelId}:`, error);
             this.cleanupSession(channelId);
