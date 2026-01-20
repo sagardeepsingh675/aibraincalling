@@ -272,12 +272,37 @@ export class AudioBridgeService extends EventEmitter {
     }
 
     private async playAudioFile(channelId: string, audioPath: string): Promise<void> {
-        // For now, use Asterisk's sound file format
-        // In production, we'd convert MP3 to WAV and use ARI external media
-        const soundUri = `sound:${audioPath.replace(/\\/g, '/')}`;
+        // Copy the audio file to Asterisk's sounds directory for playback
+        // Asterisk can only play files from its sounds directory using sound: URI
+        const filename = path.basename(audioPath, '.mp3');
+        const asteriskSoundsDir = '/var/lib/asterisk/sounds/ai-brain';
+        const asteriskSoundPath = path.join(asteriskSoundsDir, `${filename}.mp3`);
 
         try {
+            // Ensure the AI sounds directory exists
+            if (!fs.existsSync(asteriskSoundsDir)) {
+                fs.mkdirSync(asteriskSoundsDir, { recursive: true });
+                logger.info(`Created Asterisk sounds directory: ${asteriskSoundsDir}`);
+            }
+
+            // Copy the MP3 file to Asterisk sounds directory
+            fs.copyFileSync(audioPath, asteriskSoundPath);
+            logger.info(`Copied audio to: ${asteriskSoundPath}`);
+
+            // Play using sound: URI (relative to sounds directory)
+            const soundUri = `sound:ai-brain/${filename}`;
+            logger.info(`Playing with URI: ${soundUri}`);
+
             await asteriskARI.playAudio(channelId, soundUri);
+            logger.info('Audio playback completed');
+
+            // Cleanup: delete the copied file after playback
+            setTimeout(() => {
+                if (fs.existsSync(asteriskSoundPath)) {
+                    fs.unlinkSync(asteriskSoundPath);
+                }
+            }, 30000); // Clean up after 30 seconds
+
         } catch (error) {
             logger.error(`Failed to play audio ${audioPath}:`, error);
             throw error;
@@ -320,3 +345,4 @@ export class AudioBridgeService extends EventEmitter {
 
 // Export singleton instance
 export const audioBridge = new AudioBridgeService();
+
