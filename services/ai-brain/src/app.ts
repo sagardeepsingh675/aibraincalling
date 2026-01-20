@@ -50,7 +50,10 @@ app.listen(PORT, async () => {
         asteriskARI.connect()
             .then((connected) => {
                 if (connected) {
-                    logger.info('✅ Asterisk ARI connected, AudioBridge ready');
+                    logger.info('✅ Asterisk ARI connected');
+                    // Initialize AudioBridge AFTER ARI is connected
+                    audioBridge.initialize();
+                    logger.info('✅ AudioBridge ready for calls');
                 } else {
                     logger.warn('⚠️ Asterisk ARI connection failed, will retry');
                 }

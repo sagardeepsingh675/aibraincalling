@@ -30,22 +30,34 @@ export class AudioBridgeService extends EventEmitter {
             fs.mkdirSync(this.audioDir, { recursive: true });
         }
 
+        logger.info('AudioBridgeService created');
+    }
+
+    initialize(): void {
+        logger.info('AudioBridgeService initializing - setting up ARI listeners...');
         this.setupARIListeners();
-        logger.info('AudioBridgeService initialized');
+        logger.info('AudioBridgeService initialized and listening for calls');
     }
 
     private setupARIListeners(): void {
+        logger.info('Setting up ARI event listeners...');
+
         asteriskARI.on('callStarted', async (event) => {
+            logger.info('callStarted event received!');
             await this.handleCallStarted(event);
         });
 
         asteriskARI.on('callEnded', (event) => {
+            logger.info('callEnded event received');
             this.handleCallEnded(event.channelId);
         });
 
         asteriskARI.on('dtmfReceived', (event) => {
+            logger.info('dtmfReceived event received');
             this.handleDTMF(event.channelId, event.digit);
         });
+
+        logger.info('ARI event listeners ready');
     }
 
     private async handleCallStarted(event: {
