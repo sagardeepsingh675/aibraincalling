@@ -45,7 +45,7 @@ app.listen(PORT, async () => {
     logger.info(`📡 Webhook endpoint: http://localhost:${PORT}/api/webhook`);
 
     // Connect to Asterisk ARI (non-blocking)
-    if (config.asterisk.host && config.asterisk.host !== 'localhost') {
+    if (config.asterisk.ariPassword && config.asterisk.ariPassword.length > 0) {
         logger.info('🔗 Connecting to Asterisk ARI...');
         asteriskARI.connect()
             .then((connected) => {
