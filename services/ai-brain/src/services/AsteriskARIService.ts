@@ -76,8 +76,8 @@ export class AsteriskARIService extends EventEmitter {
         const ariUrl = `http://${config.asterisk.host}:${config.asterisk.ariPort}`;
         const { ariUser, ariPassword } = config.asterisk;
 
-        if (!config.asterisk.host || config.asterisk.host === 'localhost') {
-            logger.warn('Asterisk host not configured, ARI connection skipped');
+        if (!config.asterisk.ariPassword) {
+            logger.warn('Asterisk ARI password not configured, skipping connection');
             return false;
         }
 
