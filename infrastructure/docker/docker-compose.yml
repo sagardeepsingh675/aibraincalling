@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # Website (Lead Capture)
+  # ===========================================
+  website:
+    build:
+      context: ../../apps/website
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    volumes:
+      - ../../apps/website:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # ===========================================
+  # Admin Panel
+  # ===========================================
+  admin:
+    build:
+      context: ../../apps/admin
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    volumes:
+      - ../../apps/admin:/app
+      - /app/node_modules
+    command: npm run dev
+
+  # ===========================================
+  # AI Brain Server
+  # ===========================================
+  ai-brain:
+    build:
+      context: ../../services/ai-brain
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - AI_BRAIN_PORT=4000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - GOOGLE_PROJECT_ID=${GOOGLE_PROJECT_ID}
+      - GOOGLE_LOCATION=${GOOGLE_LOCATION}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ASTERISK_HOST=asterisk
+      - ASTERISK_ARI_PORT=8088
+      - ASTERISK_ARI_USER=aibrain
+      - ASTERISK_ARI_PASSWORD=${ASTERISK_ARI_PASSWORD}
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ../../services/ai-brain:/app
+      - /app/node_modules
+    depends_on:
+      - redis
+      - asterisk
+    command: npm run dev
+
+  # ===========================================
+  # Redis (Job Queue)
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ===========================================
+  # Asterisk SIP Server
+  # ===========================================
+  asterisk:
+    image: andrius/asterisk:alpine-18
+    ports:
+      - "5060:5060/tcp"
+      - "5060:5060/udp"
+      - "8088:8088"
+      - "10000-10100:10000-10100/udp"
+    volumes:
+      - ../../asterisk/config:/etc/asterisk
+      - asterisk_recordings:/var/spool/asterisk/recording
+    environment:
+      - ASTERISK_UID=1000
+      - ASTERISK_GID=1000
+
+volumes:
+  redis_data:
+  asterisk_recordings:
