@@ -272,11 +272,13 @@ export class AudioBridgeService extends EventEmitter {
     }
 
     private async playAudioFile(channelId: string, audioPath: string): Promise<void> {
-        // Copy the audio file to Asterisk's sounds directory for playback
-        // Asterisk can only play files from its sounds directory using sound: URI
+        // Convert MP3 to WAV format that Asterisk can play
+        // Asterisk needs: 8kHz, mono, 16-bit PCM (slin) or ulaw/alaw
+        const { execSync } = require('child_process');
+
         const filename = path.basename(audioPath, '.mp3');
         const asteriskSoundsDir = '/var/lib/asterisk/sounds/ai-brain';
-        const asteriskSoundPath = path.join(asteriskSoundsDir, `${filename}.mp3`);
+        const wavPath = path.join(asteriskSoundsDir, `${filename}.wav`);
 
         try {
             // Ensure the AI sounds directory exists
@@ -285,21 +287,24 @@ export class AudioBridgeService extends EventEmitter {
                 logger.info(`Created Asterisk sounds directory: ${asteriskSoundsDir}`);
             }
 
-            // Copy the MP3 file to Asterisk sounds directory
-            fs.copyFileSync(audioPath, asteriskSoundPath);
-            logger.info(`Copied audio to: ${asteriskSoundPath}`);
+            // Convert MP3 to WAV using ffmpeg (8kHz mono for Asterisk)
+            logger.info(`Converting ${audioPath} to WAV format...`);
+            const ffmpegCmd = `ffmpeg -y -i "${audioPath}" -ar 8000 -ac 1 -acodec pcm_s16le "${wavPath}"`;
+            execSync(ffmpegCmd, { stdio: 'pipe' });
+            logger.info(`Converted audio to: ${wavPath}`);
 
-            // Play using sound: URI (relative to sounds directory)
+            // Play using sound: URI (relative to sounds directory, without extension)
             const soundUri = `sound:ai-brain/${filename}`;
             logger.info(`Playing with URI: ${soundUri}`);
 
             await asteriskARI.playAudio(channelId, soundUri);
             logger.info('Audio playback completed');
 
-            // Cleanup: delete the copied file after playback
+            // Cleanup: delete the converted file after playback
             setTimeout(() => {
-                if (fs.existsSync(asteriskSoundPath)) {
-                    fs.unlinkSync(asteriskSoundPath);
+                if (fs.existsSync(wavPath)) {
+                    fs.unlinkSync(wavPath);
+                    logger.info(`Cleaned up: ${wavPath}`);
                 }
             }, 30000); // Clean up after 30 seconds
 
