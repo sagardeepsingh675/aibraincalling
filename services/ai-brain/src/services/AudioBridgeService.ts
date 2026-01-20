@@ -88,18 +88,28 @@ export class AudioBridgeService extends EventEmitter {
             // Generate greeting
             session.state = 'speaking';
             const greeting = vertexAI.getGreeting();
+            logger.info(`Generated greeting: ${greeting}`);
 
-            // Convert to speech
-            const audioPath = await this.textToSpeech(greeting, `greeting-${channelId}`);
-
-            // Play greeting
-            await this.playAudioFile(channelId, audioPath);
+            // For initial testing, use Asterisk built-in sound
+            // Later we'll integrate TTS audio properly
+            try {
+                logger.info(`Playing built-in greeting for channel ${channelId}`);
+                await asteriskARI.playAudio(channelId, 'sound:hello-world');
+                logger.info('Built-in sound played successfully');
+            } catch (playErr) {
+                logger.error('Failed to play built-in sound, trying TTS:', playErr);
+                // Fallback to TTS if available
+                const audioPath = await this.textToSpeech(greeting, `greeting-${channelId}`);
+                await this.playAudioFile(channelId, audioPath);
+            }
 
             // Add to conversation history
             session.conversationHistory.push({ role: 'assistant', content: greeting });
 
-            // Start listening for user input
-            await this.listenAndRespond(session);
+            // For now, just wait and end the call (testing phase)
+            logger.info('Waiting 3 seconds before ending test call...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.endConversation(session, 'test_complete');
 
         } catch (error) {
             logger.error(`Conversation start failed for ${channelId}:`, error);
