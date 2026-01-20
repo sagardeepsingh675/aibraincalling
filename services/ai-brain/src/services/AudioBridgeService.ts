@@ -104,31 +104,26 @@ export class AudioBridgeService extends EventEmitter {
         const { channelId } = session;
 
         try {
-            // Generate greeting
+            // Generate greeting from AI
             session.state = 'speaking';
             const greeting = vertexAI.getGreeting();
             logger.info(`Generated greeting: ${greeting}`);
 
-            // For initial testing, use Asterisk built-in sound
-            // Later we'll integrate TTS audio properly
-            try {
-                logger.info(`Playing built-in greeting for channel ${channelId}`);
-                await asteriskARI.playAudio(channelId, 'sound:hello-world');
-                logger.info('Built-in sound played successfully');
-            } catch (playErr) {
-                logger.error('Failed to play built-in sound, trying TTS:', playErr);
-                // Fallback to TTS if available
-                const audioPath = await this.textToSpeech(greeting, `greeting-${channelId}`);
-                await this.playAudioFile(channelId, audioPath);
-            }
+            // Convert greeting to speech using ElevenLabs
+            logger.info(`Converting greeting to speech...`);
+            const audioPath = await this.textToSpeech(greeting, `greeting-${channelId}`);
+            logger.info(`TTS audio ready: ${audioPath}`);
+
+            // Play the TTS greeting
+            await this.playAudioFile(channelId, audioPath);
+            logger.info('Greeting played successfully');
 
             // Add to conversation history
             session.conversationHistory.push({ role: 'assistant', content: greeting });
 
-            // For now, just wait and end the call (testing phase)
-            logger.info('Waiting 3 seconds before ending test call...');
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            await this.endConversation(session, 'test_complete');
+            // Start the conversation loop (STT -> AI -> TTS)
+            logger.info('Starting conversation loop...');
+            await this.listenAndRespond(session);
 
         } catch (error) {
             logger.error(`Conversation start failed for ${channelId}:`, error);
