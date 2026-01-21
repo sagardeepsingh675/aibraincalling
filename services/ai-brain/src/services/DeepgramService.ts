@@ -33,8 +33,18 @@ export class DeepgramService {
             // Read audio file
             const audioBuffer = fs.readFileSync(filePath);
 
-            // Call Deepgram API
-            const response = await fetch(`${this.baseUrl}/listen?model=nova-2&language=hi&detect_language=true&punctuate=true`, {
+            // Call Deepgram API with telephony-optimized settings
+            // Using nova-2 model with multi-language support for Hindi-English
+            const params = new URLSearchParams({
+                model: 'nova-2',
+                language: 'multi',  // Auto-detect Hindi/English
+                punctuate: 'true',
+                sample_rate: '8000',  // Asterisk uses 8kHz
+                encoding: 'linear16',  // PCM 16-bit
+                channels: '1',  // Mono
+            });
+
+            const response = await fetch(`${this.baseUrl}/listen?${params.toString()}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Token ${this.apiKey}`,
