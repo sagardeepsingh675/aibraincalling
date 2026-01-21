@@ -4,7 +4,7 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { asteriskARI } from './AsteriskARIService';
-import { vertexAI } from './VertexAIService';
+import { openAIChat } from './OpenAIChatService';  // Faster than Vertex AI
 import { elevenLabs } from './ElevenLabsService';
 import { whisperService } from './WhisperService';
 
@@ -107,7 +107,7 @@ export class AudioBridgeService extends EventEmitter {
         try {
             // Generate greeting from AI
             session.state = 'speaking';
-            const greeting = vertexAI.getGreeting();
+            const greeting = openAIChat.getGreeting();
             logger.info(`Generated greeting: ${greeting}`);
 
             // Convert greeting to speech using ElevenLabs
@@ -169,7 +169,7 @@ export class AudioBridgeService extends EventEmitter {
                 }
 
                 // Generate AI response - use callId for session tracking
-                const response = await vertexAI.generateResponse(
+                const response = await openAIChat.generateResponse(
                     session.callId,
                     transcription
                 );
@@ -219,7 +219,7 @@ export class AudioBridgeService extends EventEmitter {
 
         try {
             // Generate closing message
-            const closing = vertexAI.getClosing();
+            const closing = openAIChat.getClosing();
 
             // Play closing
             const audioPath = await this.textToSpeech(closing, `closing-${channelId}`);
