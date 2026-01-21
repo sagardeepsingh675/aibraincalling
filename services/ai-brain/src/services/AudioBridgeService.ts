@@ -4,10 +4,10 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { asteriskARI } from './AsteriskARIService';
-import { openAIChat } from './OpenAIChatService';  // Faster than Vertex AI
+import { groqService } from './GroqService';  // Ultra-fast LLM (~100ms)
+import { openAIChat } from './OpenAIChatService';  // Fallback
 import { elevenLabs } from './ElevenLabsService';
-import { googleSTT } from './GoogleSTTService';  // Faster than Whisper
-import { whisperService } from './WhisperService';  // Fallback
+import { whisperService } from './WhisperService';
 
 interface ConversationSession {
     channelId: string;
@@ -108,7 +108,7 @@ export class AudioBridgeService extends EventEmitter {
         try {
             // Generate greeting from AI
             session.state = 'speaking';
-            const greeting = openAIChat.getGreeting();
+            const greeting = groqService.getGreeting();
             logger.info(`Generated greeting: ${greeting}`);
 
             // Convert greeting to speech using ElevenLabs
@@ -170,7 +170,7 @@ export class AudioBridgeService extends EventEmitter {
                 }
 
                 // Generate AI response - use callId for session tracking
-                const response = await openAIChat.generateResponse(
+                const response = await groqService.generateResponse(
                     session.callId,
                     transcription
                 );
@@ -220,7 +220,7 @@ export class AudioBridgeService extends EventEmitter {
 
         try {
             // Generate closing message
-            const closing = openAIChat.getClosing();
+            const closing = groqService.getClosing();
 
             // Play closing
             const audioPath = await this.textToSpeech(closing, `closing-${channelId}`);
