@@ -261,14 +261,7 @@ export class AudioBridgeService extends EventEmitter {
         fs.writeFileSync(tempPath, audioBuffer);
 
         try {
-            // Try Deepgram first (ultra-fast ~300ms)
-            if (deepgramService.isConfigured()) {
-                const result = await deepgramService.transcribeFile(tempPath);
-                return result.text;
-            }
-
-            // Fallback to Whisper
-            logger.info('Using Whisper STT fallback');
+            // Use Whisper - works reliably with Asterisk 8kHz audio
             const result = await whisperService.transcribeFile(tempPath);
             return result.text;
         } finally {
