@@ -4,10 +4,10 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { asteriskARI } from './AsteriskARIService';
-import { groqService } from './GroqService';  // Ultra-fast LLM (~100ms)
-import { openAIChat } from './OpenAIChatService';  // Fallback
+import { groqService } from './GroqService';  // Ultra-fast LLM (~300ms)
 import { elevenLabs } from './ElevenLabsService';
-import { whisperService } from './WhisperService';
+import { deepgramService } from './DeepgramService';  // Ultra-fast STT (~300ms)
+import { whisperService } from './WhisperService';  // Fallback
 
 interface ConversationSession {
     channelId: string;
@@ -261,7 +261,14 @@ export class AudioBridgeService extends EventEmitter {
         fs.writeFileSync(tempPath, audioBuffer);
 
         try {
-            // Use Whisper (OpenAI) - faster than Google STT REST API
+            // Try Deepgram first (ultra-fast ~300ms)
+            if (deepgramService.isConfigured()) {
+                const result = await deepgramService.transcribeFile(tempPath);
+                return result.text;
+            }
+
+            // Fallback to Whisper
+            logger.info('Using Whisper STT fallback');
             const result = await whisperService.transcribeFile(tempPath);
             return result.text;
         } finally {
