@@ -261,14 +261,7 @@ export class AudioBridgeService extends EventEmitter {
         fs.writeFileSync(tempPath, audioBuffer);
 
         try {
-            // Try Google STT first (faster)
-            if (googleSTT.isConfigured()) {
-                const result = await googleSTT.transcribeFile(tempPath);
-                return result.text;
-            }
-
-            // Fallback to Whisper if Google STT not configured
-            logger.info('Using Whisper STT fallback');
+            // Use Whisper (OpenAI) - faster than Google STT REST API
             const result = await whisperService.transcribeFile(tempPath);
             return result.text;
         } finally {
