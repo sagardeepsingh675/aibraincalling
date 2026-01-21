@@ -12,7 +12,7 @@ export class OpenAIChatService {
     private apiKey: string;
     private conversationHistory: Map<string, ConversationMessage[]>;
     private systemPrompt: string;
-    private model: string = 'gpt-4o';  // Fast and capable
+    private model: string = 'gpt-4o-mini';  // Fastest model with great quality
 
     constructor() {
         this.apiKey = config.stt?.openaiKey || process.env.OPENAI_API_KEY || '';

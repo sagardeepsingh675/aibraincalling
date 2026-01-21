@@ -6,7 +6,8 @@ import { logger } from '../utils/logger';
 import { asteriskARI } from './AsteriskARIService';
 import { openAIChat } from './OpenAIChatService';  // Faster than Vertex AI
 import { elevenLabs } from './ElevenLabsService';
-import { whisperService } from './WhisperService';
+import { googleSTT } from './GoogleSTTService';  // Faster than Whisper
+import { whisperService } from './WhisperService';  // Fallback
 
 interface ConversationSession {
     channelId: string;
@@ -244,11 +245,9 @@ export class AudioBridgeService extends EventEmitter {
     }
 
     private async textToSpeech(text: string, filename: string): Promise<string> {
-        const audioPath = path.join(this.audioDir, `${filename}.mp3`);
-
         try {
-            const audioBuffer = await elevenLabs.textToSpeech(text);
-            fs.writeFileSync(audioPath, audioBuffer);
+            // Use streaming TTS for faster response
+            const audioPath = await elevenLabs.streamTextToSpeechFile(text, `${filename}.mp3`);
             return audioPath;
         } catch (error) {
             logger.error('TTS failed:', error);
@@ -257,11 +256,19 @@ export class AudioBridgeService extends EventEmitter {
     }
 
     private async transcribeAudio(audioBuffer: Buffer, name: string): Promise<string> {
-        // Save buffer to temp file for Whisper
+        // Save buffer to temp file for STT
         const tempPath = path.join(this.audioDir, `${name}.wav`);
         fs.writeFileSync(tempPath, audioBuffer);
 
         try {
+            // Try Google STT first (faster)
+            if (googleSTT.isConfigured()) {
+                const result = await googleSTT.transcribeFile(tempPath);
+                return result.text;
+            }
+
+            // Fallback to Whisper if Google STT not configured
+            logger.info('Using Whisper STT fallback');
             const result = await whisperService.transcribeFile(tempPath);
             return result.text;
         } finally {

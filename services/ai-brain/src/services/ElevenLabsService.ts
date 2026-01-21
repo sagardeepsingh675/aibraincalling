@@ -117,6 +117,72 @@ export class ElevenLabsService {
     }
 
     /**
+     * Stream text to speech and save to file (faster than regular TTS)
+     * Returns as soon as the file is ready to play
+     */
+    async streamTextToSpeechFile(text: string, filename: string, options?: TTSOptions): Promise<string> {
+        const startTime = Date.now();
+        logger.info({ textLength: text.length }, 'Streaming TTS to file');
+
+        if (!this.apiKey || this.apiKey === 'your-elevenlabs-api-key') {
+            throw new Error('ElevenLabs API key not configured');
+        }
+
+        const voiceId = options?.voiceId || this.defaultVoiceId;
+        const modelId = options?.modelId || 'eleven_turbo_v2_5';  // Fastest model!
+
+        const filePath = join(this.audioOutputDir, filename.endsWith('.mp3') ? filename : `${filename}.mp3`);
+
+        try {
+            const response = await fetch(
+                `${this.baseUrl}/text-to-speech/${voiceId}/stream`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'Content-Type': 'application/json',
+                        'xi-api-key': this.apiKey,
+                    },
+                    body: JSON.stringify({
+                        text,
+                        model_id: modelId,
+                        voice_settings: {
+                            ...this.defaultSettings,
+                            ...options?.voiceSettings,
+                        },
+                    }),
+                }
+            );
+
+            if (!response.ok || !response.body) {
+                const errorText = await response.text();
+                throw new Error(`ElevenLabs streaming error: ${response.status} - ${errorText}`);
+            }
+
+            // Collect all chunks
+            const chunks: Buffer[] = [];
+            const reader = response.body.getReader();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(Buffer.from(value));
+            }
+
+            const audioBuffer = Buffer.concat(chunks);
+            await writeFile(filePath, audioBuffer);
+
+            const latency = Date.now() - startTime;
+            logger.info({ filePath, size: audioBuffer.length, latency }, 'Streaming TTS file saved');
+            return filePath;
+
+        } catch (error) {
+            logger.error({ error }, 'Error streaming TTS to file');
+            throw error;
+        }
+    }
+
+    /**
      * Stream text to speech (for lower latency)
      */
     async *streamTextToSpeech(text: string, options?: TTSOptions): AsyncGenerator<Buffer> {
