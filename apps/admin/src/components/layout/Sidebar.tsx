@@ -2,43 +2,45 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/leads', label: 'Leads', icon: '👥' },
-    { path: '/calls', label: 'Call History', icon: '📞' },
-    { path: '/agents', label: 'AI Agents', icon: '🤖' },
-    { path: '/settings', label: 'Settings', icon: '⚙️' },
+  { path: '/', label: 'Dashboard', icon: '📊' },
+  { path: '/leads', label: 'Leads', icon: '👥' },
+  { path: '/calls', label: 'Call History', icon: '📞' },
+  { path: '/agents', label: 'AI Agents', icon: '🤖' },
+  { path: '/agent-config', label: 'Agent Config', icon: '🎯' },
+  { path: '/analytics', label: 'Analytics', icon: '📈' },
+  { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 function Sidebar() {
-    const { signOut } = useAuth();
+  const { signOut } = useAuth();
 
-    return (
-        <aside className="sidebar">
-            <div className="sidebar-header">
-                <span className="logo-icon">🤖</span>
-                <span className="logo-text">VoiceAI Admin</span>
-            </div>
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-header">
+        <span className="logo-icon">🤖</span>
+        <span className="logo-text">VoiceAI Admin</span>
+      </div>
 
-            <nav className="sidebar-nav">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                        end={item.path === '/'}
-                    >
-                        <span className="nav-icon">{item.icon}</span>
-                        <span className="nav-label">{item.label}</span>
-                    </NavLink>
-                ))}
-            </nav>
+      <nav className="sidebar-nav">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            end={item.path === '/'}
+          >
+            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-label">{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
 
-            <button className="logout-btn" onClick={signOut}>
-                <span>🚪</span>
-                <span>Logout</span>
-            </button>
+      <button className="logout-btn" onClick={signOut}>
+        <span>🚪</span>
+        <span>Logout</span>
+      </button>
 
-            <style>{`
+      <style>{`
         .sidebar {
           position: fixed;
           left: 0;
@@ -116,8 +118,8 @@ function Sidebar() {
           background: rgba(239, 68, 68, 0.1);
         }
       `}</style>
-        </aside>
-    );
+    </aside>
+  );
 }
 
 export default Sidebar;

@@ -1,4 +1,5 @@
 import { createLogger } from '../utils/logger.js';
+import { agentConfigService } from './AgentConfigService.js';
 
 const logger = createLogger('GroqService');
 
@@ -10,34 +11,29 @@ type ConversationMessage = {
 export class GroqService {
     private apiKey: string;
     private conversationHistory: Map<string, ConversationMessage[]>;
-    private systemPrompt: string;
     private model: string = 'llama-3.3-70b-versatile';  // Fast and capable
 
     constructor() {
         this.apiKey = process.env.GROQ_API_KEY || '';
         this.conversationHistory = new Map();
-
-        // System prompt for Hindi-English AI agent
-        this.systemPrompt = `You are a friendly AI voice assistant speaking in natural Hindi-English mix (Hinglish).
-
-Rules:
-- Keep responses SHORT (1-2 sentences max) - this is a phone call
-- Use natural Hinglish like "Namaste", "ji", "accha", "bilkul"
-- Be warm and helpful
-- Don't give long explanations
-
-Example responses:
-- "Namaste! Aapki kya help karoon?"
-- "Ji bilkul, main samajh gaya."
-- "Accha ji, koi baat nahi!"`;
     }
 
     /**
      * Initialize conversation for a new call
      */
-    initConversation(callId: string, customPrompt?: string): void {
+    async initConversation(callId: string, customPrompt?: string): Promise<void> {
+        // Get dynamic system prompt from config
+        let systemPrompt = customPrompt;
+        if (!systemPrompt) {
+            try {
+                systemPrompt = await agentConfigService.buildSystemPrompt();
+            } catch {
+                systemPrompt = 'You are a helpful AI assistant. Keep responses short.';
+            }
+        }
+
         const messages: ConversationMessage[] = [
-            { role: 'system', content: customPrompt || this.systemPrompt }
+            { role: 'system', content: systemPrompt }
         ];
         this.conversationHistory.set(callId, messages);
         logger.info({ callId }, 'Conversation initialized');
@@ -109,22 +105,25 @@ Example responses:
     }
 
     /**
-     * Get greeting message
+     * Get greeting message from config
      */
-    getGreeting(): string {
-        const greetings = [
-            "Namaste! Main aapka AI assistant hoon. Kya help karoon?",
-            "Hello ji! Batayein, kya chahiye?",
-            "Namaste! Aap kaise hain?",
-        ];
-        return greetings[Math.floor(Math.random() * greetings.length)];
+    async getGreeting(): Promise<string> {
+        try {
+            return await agentConfigService.getGreeting();
+        } catch {
+            return "Namaste! Main aapka AI assistant hoon. Kya help karoon?";
+        }
     }
 
     /**
-     * Get closing message
+     * Get closing message from config
      */
-    getClosing(): string {
-        return "Accha ji, dhanyawad! Take care!";
+    async getClosing(positive: boolean = true): Promise<string> {
+        try {
+            return await agentConfigService.getClosingMessage(positive);
+        } catch {
+            return "Accha ji, dhanyawad! Take care!";
+        }
     }
 
     /**

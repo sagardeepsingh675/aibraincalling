@@ -255,4 +255,14 @@ export class SupabaseService {
 
         return { call: call as VCCall, lead: lead as VCLead };
     }
+
+    /**
+     * Get the Supabase client for direct queries
+     */
+    getClient(): SupabaseClient {
+        return this.client;
+    }
 }
+
+// Export singleton instance
+export const supabaseService = new SupabaseService();

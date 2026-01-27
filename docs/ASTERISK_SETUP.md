@@ -77,7 +77,7 @@ sudo contrib/scripts/get_mp3_source.sh
 sudo contrib/scripts/install_prereq install
 sudo ./configure --with-pjproject-bundled --with-jansson-bundled
 sudo make menuselect.makeopts  # Select modules
-sudo make -j$(nproc)
+    sudo make -j$(nproc)
 sudo make install
 sudo make samples
 sudo make config
