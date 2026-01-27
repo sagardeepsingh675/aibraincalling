@@ -108,7 +108,7 @@ export class AudioBridgeService extends EventEmitter {
         try {
             // Generate greeting from AI
             session.state = 'speaking';
-            const greeting = groqService.getGreeting();
+            const greeting = await groqService.getGreeting();
             logger.info(`Generated greeting: ${greeting}`);
 
             // Convert greeting to speech using ElevenLabs
@@ -220,7 +220,7 @@ export class AudioBridgeService extends EventEmitter {
 
         try {
             // Generate closing message
-            const closing = groqService.getClosing();
+            const closing = await groqService.getClosing();
 
             // Play closing
             const audioPath = await this.textToSpeech(closing, `closing-${channelId}`);
