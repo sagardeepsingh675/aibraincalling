@@ -22,7 +22,7 @@ Download the free Zoiper app:
 | Field | Value |
 |-------|-------|
 | **Account name** | AI Voice Platform |
-| **Domain** | `34.93.33.112` |
+| **Domain** | `35.200.144.114` |
 | **Username** | `sipapp` |
 | **Password** | `xCOYbVuCePvR3+oS` |
 | **Auth username** | `sipapp` |
