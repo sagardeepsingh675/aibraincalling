@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import http from 'http';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import webhookRoutes from './api/routes/webhook.js';
@@ -42,15 +43,61 @@ app.post('/api/test-call', async (req, res) => {
 });
 
 // Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error({ error: err.message, stack: err.stack }, 'Unhandled error');
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
+// Create HTTP server for graceful shutdown
 const PORT = config.port;
+const server = http.createServer(app);
 
-app.listen(PORT, async () => {
+// Track connections for graceful shutdown
+let connections: Set<any> = new Set();
+
+server.on('connection', (conn) => {
+    connections.add(conn);
+    conn.on('close', () => connections.delete(conn));
+});
+
+// Graceful shutdown handler
+const gracefulShutdown = (signal: string) => {
+    logger.info(`${signal} received. Shutting down gracefully...`);
+
+    // Stop accepting new connections
+    server.close((err) => {
+        if (err) {
+            logger.error({ error: err }, 'Error during server close');
+            process.exit(1);
+        }
+        logger.info('Server closed. Exiting...');
+        process.exit(0);
+    });
+
+    // Force close connections after 5 seconds
+    setTimeout(() => {
+        logger.warn('Could not close connections in time, forcefully shutting down');
+        connections.forEach((conn) => conn.destroy());
+        process.exit(1);
+    }, 5000);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+    logger.error({ error: err }, 'Uncaught exception');
+    gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error({ reason, promise }, 'Unhandled rejection');
+});
+
+// Start server
+server.listen(PORT, async () => {
     logger.info(`🚀 AI Brain server running on port ${PORT}`);
     logger.info(`📡 Webhook endpoint: http://localhost:${PORT}/api/webhook`);
 
@@ -77,4 +124,3 @@ app.listen(PORT, async () => {
 });
 
 export default app;
-
