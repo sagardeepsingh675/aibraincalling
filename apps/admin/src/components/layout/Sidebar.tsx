@@ -9,6 +9,7 @@ const navItems = [
   { path: '/agent-config', label: 'Agent Config', icon: '🎯' },
   { path: '/analytics', label: 'Analytics', icon: '📈' },
   { path: '/users', label: 'Users & SIP', icon: '👤' },
+  { path: '/server', label: 'Server', icon: '🖥️' },
   { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

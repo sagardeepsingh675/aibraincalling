@@ -9,6 +9,7 @@ import healthRoutes from './api/routes/health.js';
 import aiRoutes from './api/routes/ai.js';
 import ttsRoutes from './api/routes/tts.js';
 import sttRoutes from './api/routes/stt.js';
+import serverRoutes from './api/routes/server.js';
 import { asteriskARI } from './services/AsteriskARIService.js';
 import { audioBridge } from './services/AudioBridgeService.js';
 
@@ -31,6 +32,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/tts', ttsRoutes);
 app.use('/api/stt', sttRoutes);
+app.use('/api/server', serverRoutes);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import AgentConfig from './pages/AgentConfig';
 import CallAnalytics from './pages/CallAnalytics';
 import UserManagement from './pages/UserManagement';
+import ServerManagement from './pages/ServerManagement';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -41,6 +42,7 @@ function AppLayout() {
                         <Route path="/agent-config" element={<AgentConfig />} />
                         <Route path="/analytics" element={<CallAnalytics />} />
                         <Route path="/users" element={<UserManagement />} />
+                        <Route path="/server" element={<ServerManagement />} />
                         <Route path="/settings" element={<Settings />} />
                     </Routes>
                 </main>
