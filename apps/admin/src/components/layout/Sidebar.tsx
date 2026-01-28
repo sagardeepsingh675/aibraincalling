@@ -8,6 +8,7 @@ const navItems = [
   { path: '/agents', label: 'AI Agents', icon: '🤖' },
   { path: '/agent-config', label: 'Agent Config', icon: '🎯' },
   { path: '/analytics', label: 'Analytics', icon: '📈' },
+  { path: '/users', label: 'Users & SIP', icon: '👤' },
   { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

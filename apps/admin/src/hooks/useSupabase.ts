@@ -371,3 +371,201 @@ export function useAgents() {
 
     return { agents, loading, fetchAgents, updateAgent };
 }
+
+// ===== TENANT USER MANAGEMENT =====
+
+export interface TenantUser {
+    id: string;
+    email: string;
+    password_hash?: string;
+    name: string;
+    company: string | null;
+    phone: string | null;
+    is_active: boolean;
+    role: 'user' | 'manager' | 'admin';
+    created_at: string;
+    updated_at: string;
+    created_by: string | null;
+}
+
+export interface SIPAccount {
+    id: string;
+    user_id: string | null;
+    sip_username: string;
+    sip_password: string;
+    sip_server: string;
+    sip_port: number;
+    is_active: boolean;
+    is_synced_to_asterisk: boolean;
+    last_sync_at: string | null;
+    created_at: string;
+    updated_at: string;
+    tenant_user?: TenantUser;
+}
+
+export interface CallingLimits {
+    id: string;
+    user_id: string;
+    daily_call_limit: number;
+    concurrent_call_limit: number;
+    monthly_minutes_limit: number;
+    used_minutes_today: number;
+    used_minutes_month: number;
+    calls_today: number;
+    last_reset_date: string;
+    created_at: string;
+    updated_at: string;
+}
+
+// Hook for tenant users
+export function useTenantUsers() {
+    const [users, setUsers] = useState<TenantUser[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchUsers = useCallback(async () => {
+        setLoading(true);
+        const { data } = await supabase
+            .from('tenant_users')
+            .select('*')
+            .order('created_at', { ascending: false });
+        setUsers(data || []);
+        setLoading(false);
+    }, []);
+
+    const createUser = async (user: Omit<TenantUser, 'id' | 'created_at' | 'updated_at'>) => {
+        const { data, error } = await supabase
+            .from('tenant_users')
+            .insert(user)
+            .select()
+            .single();
+        if (error) throw error;
+        setUsers(prev => [data, ...prev]);
+        return data;
+    };
+
+    const updateUser = async (id: string, updates: Partial<TenantUser>) => {
+        const { data, error } = await supabase
+            .from('tenant_users')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) throw error;
+        setUsers(prev => prev.map(u => u.id === id ? data : u));
+        return data;
+    };
+
+    const deleteUser = async (id: string) => {
+        const { error } = await supabase
+            .from('tenant_users')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        setUsers(prev => prev.filter(u => u.id !== id));
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
+
+    return { users, loading, fetchUsers, createUser, updateUser, deleteUser };
+}
+
+// Hook for SIP accounts
+export function useSIPAccounts() {
+    const [accounts, setAccounts] = useState<SIPAccount[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchAccounts = useCallback(async () => {
+        setLoading(true);
+        const { data } = await supabase
+            .from('sip_accounts')
+            .select('*, tenant_user:tenant_users(*)')
+            .order('created_at', { ascending: false });
+        setAccounts(data || []);
+        setLoading(false);
+    }, []);
+
+    const createAccount = async (account: Omit<SIPAccount, 'id' | 'created_at' | 'updated_at' | 'tenant_user'>) => {
+        const { data, error } = await supabase
+            .from('sip_accounts')
+            .insert(account)
+            .select()
+            .single();
+        if (error) throw error;
+        setAccounts(prev => [data, ...prev]);
+        return data;
+    };
+
+    const updateAccount = async (id: string, updates: Partial<SIPAccount>) => {
+        const { data, error } = await supabase
+            .from('sip_accounts')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) throw error;
+        setAccounts(prev => prev.map(a => a.id === id ? data : a));
+        return data;
+    };
+
+    const deleteAccount = async (id: string) => {
+        const { error } = await supabase
+            .from('sip_accounts')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        setAccounts(prev => prev.filter(a => a.id !== id));
+    };
+
+    useEffect(() => {
+        fetchAccounts();
+    }, [fetchAccounts]);
+
+    return { accounts, loading, fetchAccounts, createAccount, updateAccount, deleteAccount };
+}
+
+// Hook for calling limits
+export function useCallingLimits() {
+    const [limits, setLimits] = useState<CallingLimits[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchLimits = useCallback(async () => {
+        setLoading(true);
+        const { data } = await supabase
+            .from('calling_limits')
+            .select('*')
+            .order('created_at', { ascending: false });
+        setLimits(data || []);
+        setLoading(false);
+    }, []);
+
+    const createLimits = async (userId: string, limitConfig: Partial<CallingLimits>) => {
+        const { data, error } = await supabase
+            .from('calling_limits')
+            .insert({ user_id: userId, ...limitConfig })
+            .select()
+            .single();
+        if (error) throw error;
+        setLimits(prev => [data, ...prev]);
+        return data;
+    };
+
+    const updateLimits = async (id: string, updates: Partial<CallingLimits>) => {
+        const { data, error } = await supabase
+            .from('calling_limits')
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) throw error;
+        setLimits(prev => prev.map(l => l.id === id ? data : l));
+        return data;
+    };
+
+    useEffect(() => {
+        fetchLimits();
+    }, [fetchLimits]);
+
+    return { limits, loading, fetchLimits, createLimits, updateLimits };
+}
