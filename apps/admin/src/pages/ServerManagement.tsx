@@ -15,7 +15,7 @@ interface Statuses {
     pendingSIPSync: number;
 }
 
-const API_URL = 'https://api.incallai.online';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.incallai.online';
 
 export default function ServerManagement() {
     const [statuses, setStatuses] = useState<Statuses | null>(null);
