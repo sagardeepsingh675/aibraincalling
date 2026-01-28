@@ -60,7 +60,11 @@ export default function UserManagement() {
         setIsSubmitting(true);
         try {
             const newUser = await createUser({
-                ...formData,
+                name: formData.name,
+                email: formData.email,
+                company: formData.company,
+                phone: formData.phone,
+                role: formData.role,
                 password_hash: simpleHash(formData.password),
                 is_active: true,
                 created_by: null
