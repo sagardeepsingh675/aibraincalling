@@ -5,6 +5,7 @@ const navItems = [
     { path: '/', label: 'Dashboard', icon: '📊' },
     { path: '/calls', label: 'Call History', icon: '📞' },
     { path: '/agents', label: 'AI Agents', icon: '🤖' },
+    { path: '/agent-config', label: 'Agent Config', icon: '🎛️' },
     { path: '/outbound', label: 'Make Calls', icon: '📤' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
 ];

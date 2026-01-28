@@ -4,6 +4,7 @@ import Sidebar from './components/layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Calls from './pages/Calls';
 import Agents from './pages/Agents';
+import AgentConfig from './pages/AgentConfig';
 import Outbound from './pages/Outbound';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
@@ -36,6 +37,7 @@ function AppLayout() {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/calls" element={<Calls />} />
                     <Route path="/agents" element={<Agents />} />
+                    <Route path="/agent-config" element={<AgentConfig />} />
                     <Route path="/outbound" element={<Outbound />} />
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
