@@ -1,32 +1,47 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 interface Call {
     id: string;
-    lead_id: string;
     status: string;
-    started_at: string;
-    ended_at: string | null;
     duration: number | null;
-    created_at: string;
+    started_at: string | null;
+    ended_at: string | null;
+    lead?: any;
 }
 
 export default function Calls() {
+    const { user } = useAuth();
     const [calls, setCalls] = useState<Call[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchCalls();
-    }, []);
+        if (user) fetchCalls();
+    }, [user]);
 
     const fetchCalls = async () => {
-        // In a real implementation, this would filter by user's leads
-        const { data } = await supabase
-            .from('vc_calls')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(50);
-        setCalls(data || []);
+        if (!user) return;
+
+        try {
+            const { data } = await supabase
+                .from('vc_calls')
+                .select(`
+                    id,
+                    status,
+                    duration,
+                    started_at,
+                    ended_at,
+                    lead:vc_leads(name, phone)
+                `)
+                .eq('user_id', user.id)
+                .order('started_at', { ascending: false })
+                .limit(50);
+
+            setCalls(data || []);
+        } catch (error) {
+            console.error('Error fetching calls:', error);
+        }
         setLoading(false);
     };
 
@@ -37,85 +52,76 @@ export default function Calls() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleString();
+    const formatDate = (date: string | null) => {
+        if (!date) return '-';
+        return new Date(date).toLocaleString();
     };
 
     const getStatusBadge = (status: string) => {
-        const styles: Record<string, string> = {
-            'completed': 'badge-success',
-            'in_progress': 'badge-warning',
-            'failed': 'badge-error',
-            'queued': 'badge-secondary',
-        };
-        return styles[status] || 'badge-secondary';
+        switch (status) {
+            case 'completed': return 'badge-success';
+            case 'in_progress': return 'badge-warning';
+            case 'failed': return 'badge-error';
+            default: return 'badge-primary';
+        }
     };
 
     if (loading) {
         return (
             <div className="loading-screen">
-                <div className="loader"></div>
+                <div className="loading-spinner"></div>
             </div>
         );
     }
 
     return (
-        <div>
+        <div className="calls-page">
             <div className="page-header">
-                <h1 className="page-title">Call History</h1>
-                <p className="page-description">View your recent calls and their status</p>
+                <div>
+                    <h1 className="page-title">Call History</h1>
+                    <p className="page-description">View all your past calls</p>
+                </div>
+                <button className="btn btn-secondary" onClick={fetchCalls}>
+                    🔄 Refresh
+                </button>
             </div>
 
             <div className="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Lead ID</th>
-                            <th>Status</th>
-                            <th>Duration</th>
-                            <th>Started At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {calls.length === 0 ? (
+                {calls.length === 0 ? (
+                    <div className="empty-state">
+                        <div className="empty-state-icon">📞</div>
+                        <div className="empty-state-title">No Calls Yet</div>
+                        <div className="empty-state-text">Your call history will appear here</div>
+                    </div>
+                ) : (
+                    <table>
+                        <thead>
                             <tr>
-                                <td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>
-                                    No calls found
-                                </td>
+                                <th>Lead</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Date</th>
                             </tr>
-                        ) : (
-                            calls.map((call) => (
+                        </thead>
+                        <tbody>
+                            {calls.map((call) => (
                                 <tr key={call.id}>
-                                    <td>{formatDate(call.created_at)}</td>
-                                    <td><code>{call.lead_id.slice(0, 8)}...</code></td>
+                                    <td>{(call.lead as any)?.name || 'Unknown'}</td>
+                                    <td><code>{(call.lead as any)?.phone || '-'}</code></td>
                                     <td>
                                         <span className={`badge ${getStatusBadge(call.status)}`}>
                                             {call.status}
                                         </span>
                                     </td>
                                     <td>{formatDuration(call.duration)}</td>
-                                    <td>{call.started_at ? formatDate(call.started_at) : '-'}</td>
+                                    <td>{formatDate(call.started_at)}</td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
-
-            <style>{`
-                code {
-                    background: rgba(99, 102, 241, 0.2);
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 4px;
-                    font-family: monospace;
-                    font-size: 0.875rem;
-                }
-                .badge-secondary {
-                    background: rgba(148, 163, 184, 0.1);
-                    color: var(--text-secondary);
-                }
-            `}</style>
         </div>
     );
 }
