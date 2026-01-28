@@ -66,7 +66,6 @@ export default function UserManagement() {
                 created_by: null
             });
 
-            // Create default calling limits for the user
             await createLimits(newUser.id, {
                 daily_call_limit: 100,
                 concurrent_call_limit: 5,
@@ -176,52 +175,135 @@ export default function UserManagement() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '256px' }}>
+                <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid rgba(99, 102, 241, 0.3)',
+                    borderTopColor: '#6366f1',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                }}></div>
             </div>
         );
     }
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
+        <div>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-                    <p className="text-gray-500">Manage tenant users, SIP accounts, and calling limits</p>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>User Management</h1>
+                    <p style={{ color: '#94a3b8' }}>Manage tenant users, SIP accounts, and calling limits</p>
                 </div>
-                <div className="flex gap-3">
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
                         onClick={() => setShowSIPModal(true)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
                     >
-                        + Add SIP Account
+                        📞 Add SIP Account
                     </button>
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
                     >
-                        + Add User
+                        👤 Add User
                     </button>
                 </div>
             </div>
 
+            {/* Stats Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(99, 102, 241, 0.2)'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.length}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Total Users</div>
+                </div>
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(16, 185, 129, 0.2)'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700 }}>{users.filter(u => u.is_active).length}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Active Users</div>
+                </div>
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(245, 158, 11, 0.2)'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📞</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700 }}>{accounts.length}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>SIP Accounts</div>
+                </div>
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.1))',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(236, 72, 153, 0.2)'
+                }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔗</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700 }}>{accounts.filter(a => a.is_synced_to_asterisk).length}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Synced to Asterisk</div>
+                </div>
+            </div>
+
             {/* Users Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SIP Accounts</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Limits</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <div style={{
+                background: 'rgba(26, 26, 46, 0.8)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                overflow: 'hidden',
+                marginBottom: '2rem'
+            }}>
+                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>👤 Users</h2>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Company</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>SIP</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Limits</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                         {users.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
                                     No users found. Click "Add User" to create one.
                                 </td>
                             </tr>
@@ -230,72 +312,117 @@ export default function UserManagement() {
                                 const userSIP = getUserSIPAccounts(user.id);
                                 const userLimits = getUserLimits(user.id);
                                 return (
-                                    <tr key={user.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                                    <tr key={user.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    borderRadius: '10px',
+                                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 600,
+                                                    fontSize: '1rem'
+                                                }}>
                                                     {user.name.charAt(0).toUpperCase()}
                                                 </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                                    <div className="text-sm text-gray-500">{user.email}</div>
+                                                <div>
+                                                    <div style={{ fontWeight: 500 }}>{user.name}</div>
+                                                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>{user.email}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.company || '-'}</div>
-                                            <div className="text-sm text-gray-500">{user.phone || '-'}</div>
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <div>{user.company || '-'}</div>
+                                            <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>{user.phone || '-'}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td style={{ padding: '1rem 1.5rem' }}>
                                             {userSIP.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1">
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
                                                     {userSIP.map(sip => (
-                                                        <span key={sip.id} className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                                                        <span key={sip.id} style={{
+                                                            padding: '0.25rem 0.5rem',
+                                                            background: 'rgba(16, 185, 129, 0.15)',
+                                                            color: '#10b981',
+                                                            borderRadius: '6px',
+                                                            fontSize: '0.75rem',
+                                                            fontFamily: 'monospace'
+                                                        }}>
                                                             {sip.sip_username}
                                                         </span>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <span className="text-gray-400 text-sm">No SIP accounts</span>
+                                                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>No SIP</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td style={{ padding: '1rem 1.5rem' }}>
                                             {userLimits ? (
-                                                <div className="text-sm">
-                                                    <div className="text-gray-900">{userLimits.daily_call_limit} calls/day</div>
-                                                    <div className="text-gray-500">{userLimits.monthly_minutes_limit} min/month</div>
+                                                <div style={{ fontSize: '0.875rem' }}>
+                                                    <div>{userLimits.daily_call_limit} calls/day</div>
+                                                    <div style={{ color: '#94a3b8' }}>{userLimits.monthly_minutes_limit} min/month</div>
                                                 </div>
                                             ) : (
-                                                <span className="text-gray-400 text-sm">No limits set</span>
+                                                <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Not set</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_active
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                {user.is_active ? 'Active' : 'Inactive'}
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <span style={{
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '9999px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 500,
+                                                background: user.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                                color: user.is_active ? '#10b981' : '#ef4444'
+                                            }}>
+                                                {user.is_active ? '● Active' : '○ Inactive'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex gap-2">
+                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 <button
                                                     onClick={() => openLimitsModal(user)}
-                                                    className="text-blue-600 hover:text-blue-900"
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        background: 'rgba(99, 102, 241, 0.15)',
+                                                        color: '#6366f1',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.75rem'
+                                                    }}
                                                 >
-                                                    Limits
+                                                    ⚙️ Limits
                                                 </button>
                                                 <button
                                                     onClick={() => handleToggleActive(user)}
-                                                    className={user.is_active ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'}
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        background: user.is_active ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                                        color: user.is_active ? '#f59e0b' : '#10b981',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.75rem'
+                                                    }}
                                                 >
-                                                    {user.is_active ? 'Disable' : 'Enable'}
+                                                    {user.is_active ? '⏸️ Disable' : '▶️ Enable'}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteUser(user)}
-                                                    className="text-red-600 hover:text-red-900"
+                                                    style={{
+                                                        padding: '0.5rem 0.75rem',
+                                                        background: 'rgba(239, 68, 68, 0.15)',
+                                                        color: '#ef4444',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '0.75rem'
+                                                    }}
                                                 >
-                                                    Delete
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </td>
@@ -308,148 +435,263 @@ export default function UserManagement() {
             </div>
 
             {/* SIP Accounts Table */}
-            <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">SIP Accounts</h2>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+            <div style={{
+                background: 'rgba(26, 26, 46, 0.8)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                overflow: 'hidden'
+            }}>
+                <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>📞 SIP Accounts</h2>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ background: 'rgba(255, 255, 255, 0.03)' }}>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Username</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assigned To</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Server</th>
+                            <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {accounts.length === 0 ? (
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Server</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Synced</th>
+                                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                                    No SIP accounts found. Click "Add SIP Account" to create one.
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {accounts.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                        No SIP accounts found. Click "Add SIP Account" to create one.
+                        ) : (
+                            accounts.map((account) => (
+                                <tr key={account.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <code style={{
+                                            background: 'rgba(99, 102, 241, 0.2)',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '4px',
+                                            fontFamily: 'monospace'
+                                        }}>
+                                            {account.sip_username}
+                                        </code>
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <code style={{
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '4px',
+                                            fontFamily: 'monospace',
+                                            filter: 'blur(4px)',
+                                            transition: 'filter 0.2s',
+                                            cursor: 'pointer'
+                                        }}
+                                            onMouseEnter={(e) => (e.target as HTMLElement).style.filter = 'none'}
+                                            onMouseLeave={(e) => (e.target as HTMLElement).style.filter = 'blur(4px)'}
+                                        >
+                                            {account.sip_password}
+                                        </code>
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        {account.tenant_user ? (
+                                            <span style={{ color: '#6366f1' }}>{account.tenant_user.name}</span>
+                                        ) : (
+                                            <span style={{ color: '#64748b' }}>Unassigned</span>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>
+                                        {account.sip_server}:{account.sip_port}
+                                    </td>
+                                    <td style={{ padding: '1rem 1.5rem' }}>
+                                        <span style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 500,
+                                            background: account.is_synced_to_asterisk ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                            color: account.is_synced_to_asterisk ? '#10b981' : '#f59e0b'
+                                        }}>
+                                            {account.is_synced_to_asterisk ? '✓ Synced' : '⏳ Pending'}
+                                        </span>
                                     </td>
                                 </tr>
-                            ) : (
-                                accounts.map((account) => (
-                                    <tr key={account.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">{account.sip_username}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-gray-500">
-                                            <span className="blur-sm hover:blur-none transition-all cursor-pointer">
-                                                {account.sip_password}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            {account.tenant_user ? (
-                                                <span className="text-blue-600">{account.tenant_user.name}</span>
-                                            ) : (
-                                                <span className="text-gray-400">Unassigned</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {account.sip_server}:{account.sip_port}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-xs rounded-full ${account.is_synced_to_asterisk
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                {account.is_synced_to_asterisk ? 'Synced' : 'Pending'}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Add User Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Add New User</h2>
-                        <form onSubmit={handleCreateUser} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 50
+                }}>
+                    <div style={{
+                        background: '#1a1a2e',
+                        borderRadius: '16px',
+                        padding: '2rem',
+                        maxWidth: '480px',
+                        width: '100%',
+                        margin: '1rem',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>👤 Add New User</h2>
+                        <form onSubmit={handleCreateUser}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Name *</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Email *</label>
                                 <input
                                     type="email"
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                                <div className="flex gap-2">
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Password *</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <input
                                         type="text"
                                         required
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem 1rem',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '8px',
+                                            color: 'white',
+                                            fontSize: '1rem'
+                                        }}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, password: generatePassword() })}
-                                        className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                        style={{
+                                            padding: '0.75rem 1rem',
+                                            background: 'rgba(99, 102, 241, 0.2)',
+                                            color: '#6366f1',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer'
+                                        }}
                                     >
-                                        Generate
+                                        🎲
                                     </button>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Company</label>
                                 <input
                                     type="text"
                                     value={formData.company}
                                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Phone</label>
                                 <input
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Role</label>
                                 <select
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value as 'user' | 'manager' | 'admin' })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 >
                                     <option value="user">User</option>
                                     <option value="manager">Manager</option>
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        opacity: isSubmitting ? 0.5 : 1
+                                    }}
                                 >
                                     {isSubmitting ? 'Creating...' : 'Create User'}
                                 </button>
@@ -461,46 +703,93 @@ export default function UserManagement() {
 
             {/* Add SIP Account Modal */}
             {showSIPModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Add SIP Account</h2>
-                        <form onSubmit={handleCreateSIPAccount} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">SIP Username *</label>
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 50
+                }}>
+                    <div style={{
+                        background: '#1a1a2e',
+                        borderRadius: '16px',
+                        padding: '2rem',
+                        maxWidth: '480px',
+                        width: '100%',
+                        margin: '1rem',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>📞 Add SIP Account</h2>
+                        <form onSubmit={handleCreateSIPAccount}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>SIP Username *</label>
                                 <input
                                     type="text"
                                     required
                                     value={sipFormData.sip_username}
                                     onChange={(e) => setSipFormData({ ...sipFormData, sip_username: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="e.g. user001"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">SIP Password</label>
-                                <div className="flex gap-2">
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>SIP Password</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <input
                                         type="text"
                                         value={sipFormData.sip_password}
                                         onChange={(e) => setSipFormData({ ...sipFormData, sip_password: e.target.value })}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Leave empty to auto-generate"
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem 1rem',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            borderRadius: '8px',
+                                            color: 'white',
+                                            fontSize: '1rem'
+                                        }}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setSipFormData({ ...sipFormData, sip_password: generatePassword() })}
-                                        className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                                        style={{
+                                            padding: '0.75rem 1rem',
+                                            background: 'rgba(16, 185, 129, 0.2)',
+                                            color: '#10b981',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer'
+                                        }}
                                     >
-                                        Generate
+                                        🎲
                                     </button>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Assign to User</label>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Assign to User</label>
                                 <select
                                     value={sipFormData.user_id}
                                     onChange={(e) => setSipFormData({ ...sipFormData, user_id: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 >
                                     <option value="">-- Unassigned --</option>
                                     {users.map(user => (
@@ -508,18 +797,33 @@ export default function UserManagement() {
                                     ))}
                                 </select>
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                                 <button
                                     type="button"
                                     onClick={() => setShowSIPModal(false)}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        opacity: isSubmitting ? 0.5 : 1
+                                    }}
                                 >
                                     {isSubmitting ? 'Creating...' : 'Create SIP Account'}
                                 </button>
@@ -531,55 +835,110 @@ export default function UserManagement() {
 
             {/* Edit Limits Modal */}
             {showLimitsModal && selectedUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            Calling Limits for {selectedUser.name}
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 50
+                }}>
+                    <div style={{
+                        background: '#1a1a2e',
+                        borderRadius: '16px',
+                        padding: '2rem',
+                        maxWidth: '480px',
+                        width: '100%',
+                        margin: '1rem',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>
+                            ⚙️ Calling Limits for {selectedUser.name}
                         </h2>
-                        <form onSubmit={handleUpdateLimits} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Daily Call Limit</label>
+                        <form onSubmit={handleUpdateLimits}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Daily Call Limit</label>
                                 <input
                                     type="number"
                                     min="0"
                                     value={limitsFormData.daily_call_limit}
                                     onChange={(e) => setLimitsFormData({ ...limitsFormData, daily_call_limit: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Concurrent Call Limit</label>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Concurrent Call Limit</label>
                                 <input
                                     type="number"
                                     min="1"
                                     max="50"
                                     value={limitsFormData.concurrent_call_limit}
                                     onChange={(e) => setLimitsFormData({ ...limitsFormData, concurrent_call_limit: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Minutes Limit</label>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#94a3b8' }}>Monthly Minutes Limit</label>
                                 <input
                                     type="number"
                                     min="0"
                                     value={limitsFormData.monthly_minutes_limit}
                                     onChange={(e) => setLimitsFormData({ ...limitsFormData, monthly_minutes_limit: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem 1rem',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '8px',
+                                        color: 'white',
+                                        fontSize: '1rem'
+                                    }}
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                                 <button
                                     type="button"
                                     onClick={() => { setShowLimitsModal(false); setSelectedUser(null); }}
-                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer'
+                                    }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        opacity: isSubmitting ? 0.5 : 1
+                                    }}
                                 >
                                     {isSubmitting ? 'Saving...' : 'Save Limits'}
                                 </button>
@@ -588,6 +947,19 @@ export default function UserManagement() {
                     </div>
                 </div>
             )}
+
+            <style>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                input::placeholder, select option {
+                    color: #64748b;
+                }
+                input:focus, select:focus {
+                    outline: none;
+                    border-color: #6366f1;
+                }
+            `}</style>
         </div>
     );
 }
