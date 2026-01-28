@@ -213,6 +213,101 @@ export class SupabaseService {
     }
 
     /**
+     * Get user's agent config by SIP username (for multi-tenant AI)
+     */
+    async getAgentConfigBySipUsername(sipUsername: string): Promise<any | null> {
+        logger.info({ sipUsername }, 'Fetching agent config for SIP user');
+
+        // First get the user_id from sip_accounts
+        const { data: sipAccount, error: sipError } = await this.client
+            .from('sip_accounts')
+            .select('user_id, caller_id')
+            .eq('sip_username', sipUsername)
+            .single();
+
+        if (sipError || !sipAccount?.user_id) {
+            logger.warn({ sipUsername }, 'No SIP account or user_id found');
+            return null;
+        }
+
+        // Get the agent config for this user
+        const { data: agentConfig, error: configError } = await this.client
+            .from('vc_agent_config')
+            .select('*')
+            .eq('user_id', sipAccount.user_id)
+            .eq('is_active', true)
+            .single();
+
+        if (configError || !agentConfig) {
+            logger.warn({ sipUsername, userId: sipAccount.user_id }, 'No agent config found for user, using default');
+            // Return default config if none found
+            return this.getDefaultAgentConfig();
+        }
+
+        return agentConfig;
+    }
+
+    /**
+     * Get user's agent config by caller ID
+     */
+    async getAgentConfigByCallerId(callerId: string): Promise<any | null> {
+        logger.info({ callerId }, 'Fetching agent config for caller ID');
+
+        // First get the user_id from sip_accounts by caller_id
+        const { data: sipAccount, error: sipError } = await this.client
+            .from('sip_accounts')
+            .select('user_id, sip_username')
+            .eq('caller_id', callerId)
+            .single();
+
+        if (sipError || !sipAccount?.user_id) {
+            logger.warn({ callerId }, 'No SIP account found for caller ID');
+            return null;
+        }
+
+        // Get the agent config for this user
+        const { data: agentConfig, error: configError } = await this.client
+            .from('vc_agent_config')
+            .select('*')
+            .eq('user_id', sipAccount.user_id)
+            .eq('is_active', true)
+            .single();
+
+        if (configError || !agentConfig) {
+            logger.warn({ callerId, userId: sipAccount.user_id }, 'No agent config found for user, using default');
+            return this.getDefaultAgentConfig();
+        }
+
+        return agentConfig;
+    }
+
+    /**
+     * Get default agent config (for fallback)
+     */
+    async getDefaultAgentConfig(): Promise<any | null> {
+        const { data, error } = await this.client
+            .from('vc_agent_config')
+            .select('*')
+            .eq('is_active', true)
+            .is('user_id', null)
+            .limit(1)
+            .single();
+
+        if (error) {
+            // Try to get any active config
+            const { data: anyConfig } = await this.client
+                .from('vc_agent_config')
+                .select('*')
+                .eq('is_active', true)
+                .limit(1)
+                .single();
+            return anyConfig;
+        }
+
+        return data;
+    }
+
+    /**
      * Save recording metadata
      */
     async saveRecording(callId: string, filePath: string, duration: number): Promise<void> {

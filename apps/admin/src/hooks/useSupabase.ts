@@ -395,6 +395,7 @@ export interface SIPAccount {
     sip_password: string;
     sip_server: string;
     sip_port: number;
+    caller_id: string | null;
     is_active: boolean;
     is_synced_to_asterisk: boolean;
     last_sync_at: string | null;

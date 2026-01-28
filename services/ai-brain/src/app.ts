@@ -34,6 +34,13 @@ app.use('/api/tts', ttsRoutes);
 app.use('/api/stt', sttRoutes);
 app.use('/api/server', serverRoutes);
 
+// Direct test-call endpoint (also accessible via /api/calls/test-call)
+app.post('/api/test-call', async (req, res) => {
+    // Forward to calls router
+    req.url = '/test-call';
+    callsRoutes(req, res, () => { });
+});
+
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     logger.error({ error: err.message, stack: err.stack }, 'Unhandled error');
